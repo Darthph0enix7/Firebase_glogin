@@ -44,8 +44,13 @@ dependencies:
   firebase_database: ^10.2.5
   shared_preferences: ^2.2.0
   google_sign_in: ^6.1.4
+  googleapis: ^13.1.0
+  googleapis_auth: ^1.6.0 
   sign_in_with_apple: ^5.0.0
   bloc: 8.1.2
+  url_launcher: ^6.2.6
+  http: ^1.2.1
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
