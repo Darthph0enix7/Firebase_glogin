@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,9 +29,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    // Scopes for Google Drive access, adjust scopes based on your needs
     scopes: [
-      drive.DriveApi.driveFileScope,
+      drive.DriveApi.driveScope,
     ],
   );
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -47,7 +47,6 @@ class _LoginPageState extends State<LoginPage> {
 
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
       if (userCredential.user != null) {
-        // Here we get the auth headers needed for the Google Drive API
         final authHeaders = await googleUser.authHeaders;
         final authenticateClient = GoogleAuthClient(authHeaders);
         final driveApi = drive.DriveApi(authenticateClient);
@@ -93,6 +92,24 @@ class MainScreen extends StatelessWidget {
 
   MainScreen({required this.driveApi});
 
+  Future<void> _seeFiles() async {
+    final result = await driveApi.files.list();
+    for (var file in result.files!) {
+      print(file.name);
+    }
+  }
+
+  Future<void> _uploadFiles() async {
+    final file = drive.File();
+    file.name = 'my_file.txt';
+    final content = 'Hello, world!';
+    final media = http.ByteStream.fromBytes(content.codeUnits);
+    await driveApi.files.create(
+      file,
+      uploadMedia: drive.Media(media, content.length),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,29 +121,12 @@ class MainScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(
-              onPressed: () async {
-                // Here you can list files, for example
-                try {
-                  var files = await driveApi.files.list(spaces: 'drive');
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      content: Text("Files: ${files.files?.map((f) => f.name).join(", ") ?? "No files found"}"),
-                    );
-                  },
-                );
-                } catch (e) {
-                  print('Error listing files: $e');
-                }
-              },
+              onPressed: _seeFiles,
               child: Text("See Files"),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                // Here you could handle file uploads
-              },
+              onPressed: _uploadFiles,
               child: Text("Upload Files"),
             ),
           ],
